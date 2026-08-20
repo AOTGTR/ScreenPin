@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="th" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScreenPin</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="notranslate">
+<div id="app">
+  <header class="bar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="1"  y="7"  width="6.4" height="9" rx="1.6"/>
+        <rect x="8.8" y="5"  width="6.4" height="11" rx="1.6" class="on"/>
+        <rect x="16.6" y="7" width="6.4" height="9" rx="1.6"/>
+      </svg>
+      <span>ScreenPin</span>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="main">หน้าหลัก</button>
+      <button class="tab" data-tab="mons">จอ</button>
+      <button class="tab" data-tab="set">ตั้งค่า</button>
+    </nav>
+    <div class="bar-actions">
+      <button class="icon-btn" id="btn-reload" title="จัดใหม่เดี๋ยวนี้">↻</button>
+      <button class="icon-btn" id="btn-tray" title="ย่อลง tray">—</button>
+    </div>
+  </header>
+
+  <!-- ============================================ main -->
+  <section class="page active" id="page-main">
+    <div class="board" id="board"></div>
+    <p class="boardhint">
+      <b>ลากไอคอนไปวางอีกจอ</b> = ย้าย ·
+      <b>คลิก</b> = สลับไปหน้าต่างนั้น ·
+      <b>คลิกขวา</b> = ปักหมุดไว้จอนี้ถาวร
+    </p>
+
+    <details class="detail" id="detail">
+      <summary>ดูรายละเอียด (ชื่อแอพ · จอที่จำไว้ · โหมด)</summary>
+      <div class="listhead">
+        <input id="search" class="search" type="search" placeholder="ค้นหา…" autocomplete="off">
+        <label class="chk"><input type="checkbox" id="only-away"><span>เฉพาะที่หลุดจอ</span></label>
+        <span class="count" id="wcount"></span>
+      </div>
+      <div class="rows" id="rows"></div>
+      <div class="empty" id="empty" hidden>ไม่พบหน้าต่างที่ตรงกับคำค้น</div>
+    </details>
+  </section>
+
+  <!-- ============================================ monitors -->
+  <section class="page" id="page-mons">
+    <h2>จอที่รู้จัก</h2>
+    <p class="sub">ชื่อ (tag) คือสิ่งที่แอพใช้อ้างอิง ไม่ใช่เลข 1-2-3 ของ Windows ที่สลับไปมา</p>
+    <div class="mons" id="mons"></div>
+
+    <h2 class="mt">ScreenPin จะอยู่จอไหน</h2>
+    <p class="sub">ไม่ตั้งจอหลัก = อยู่จอเดิมเฉยๆ · ตั้งแล้ว: จอหลักถูกปิด → เด้งไปจอรองตามลำดับ · ไม่เหลือเลย → ไปจอที่ว่างที่สุดเอง (ไม่มีวันจม)</p>
+    <div class="chain" id="chain"></div>
+    <div class="chain-actions">
+      <label class="switch"><input type="checkbox" id="follow"><span class="track"></span>
+        <span class="lbl">จอหลักกลับมาเมื่อไหร่ ให้เด้งกลับทันที</span></label>
+      <button class="btn ghost" id="btn-place">ย้ายไปเดี๋ยวนี้</button>
+    </div>
+  </section>
+
+  <!-- ============================================ settings -->
+  <section class="page" id="page-set">
+    <h2>พฤติกรรม</h2>
+    <div class="opts" id="opts"></div>
+
+    <h2 class="mt">ปุ่มลัด <span class="hk-status" id="hk-status"></span></h2>
+    <p class="sub">คลิกช่องแล้วกดปุ่มที่ต้องการได้เลย · Backspace = ล้าง</p>
+    <div class="hotkeys" id="hotkeys"></div>
+    <div class="row-actions">
+      <button class="btn" id="btn-hk-save">บันทึก &amp; ใช้งาน</button>
+      <button class="btn ghost" id="btn-hk-reset">คืนค่าเริ่มต้น</button>
+    </div>
+
+    <h2 class="mt">ระบบ</h2>
+    <div class="opts">
+      <label class="switch"><input type="checkbox" id="startmenu"><span class="track"></span>
+        <span class="lbl">ใส่ไว้ใน Start menu (กด Start พิมพ์ ScreenPin ได้เลย)</span></label>
+      <label class="switch"><input type="checkbox" id="autostart"><span class="track"></span>
+        <span class="lbl">เปิดเองพร้อม Windows (ย่อลง tray)</span></label>
+    </div>
+    <div class="row-actions">
+      <button class="btn ghost" id="btn-config">เปิด config.json</button>
+      <button class="btn danger" id="btn-quit">ออกจากโปรแกรม</button>
+    </div>
+    <p class="sub mt path" id="cfgpath"></p>
+  </section>
+
+  <footer class="status" id="status"><span class="dot"></span><span id="status-text">กำลังเชื่อมต่อ…</span></footer>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet">
+    <h3 id="modal-title">ตั้งชื่อจอ</h3>
+    <p class="sub" id="modal-sub"></p>
+    <input id="modal-input" class="input" maxlength="40" autocomplete="off">
+    <div class="row-actions end">
+      <button class="btn ghost" id="modal-cancel">ยกเลิก</button>
+      <button class="btn" id="modal-ok">ตกลง</button>
+    </div>
+  </div>
+</div>
+
+<script>window.SP_KEY = "__TOKEN__";</script>
+<script src="app.js"></script>
+</body>
+</html>

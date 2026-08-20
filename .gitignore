@@ -1,0 +1,18 @@
+# personal state
+config.json
+screenpin.log
+.uiprofile/
+
+# build output
+build/
+dist/
+*.spec
+ScreenPin.exe
+
+# python
+__pycache__/
+*.pyc
+tests/_tmp/
+
+# tooling
+.playwright-mcp/
