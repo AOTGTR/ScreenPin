@@ -173,6 +173,9 @@ python tests\run_all.py
 | ต้องมี Edge หรือ Chrome | ใช้เป็นตัว render หน้าตา | Windows 11 มีอยู่แล้ว |
 | Task Manager เห็น `msedge.exe` เพิ่มตอนเปิดหน้าต่าง | ตัว render | ปิดหน้าต่างแล้วหายไป เหลือแต่ ScreenPin |
 
+> ไอคอนบน **taskbar / title bar / Task Manager** เป็นของ ScreenPin ทั้งหมด
+> (ตั้ง AppUserModelID + RelaunchIconResource ให้หน้าต่าง ไม่งั้นจะขึ้นเป็นไอคอน Edge)
+
 ---
 
 ## ไฟล์
@@ -194,6 +197,7 @@ screenpin/
   server.py    HTTP API ภายในเครื่อง
   browser.py   คุมหน้าต่าง Edge
   shortcut.py  สร้าง .lnk ผ่าน IShellLinkW (รองรับ path ภาษาไทย)
+  taskbar.py   ตั้ง AppUserModelID + ไอคอน ให้ taskbar เป็น ScreenPin ไม่ใช่ Edge
   app.py       ตัวคุมทั้งหมด
   web/         หน้าตา
 tests/               เทสพฤติกรรมจริง

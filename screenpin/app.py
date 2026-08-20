@@ -17,11 +17,13 @@ from . import icons as APPICONS
 from . import monitors as M
 from . import msgloop as ML
 from . import server as SV
+from . import taskbar as TB
 from . import shortcut as SC
 from . import win32 as w
 from . import windows as W
 
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+APP_ID = "AOTGTR.ScreenPin"
 
 
 class ScreenPin:
@@ -45,6 +47,7 @@ class ScreenPin:
         self._placed_at = 0.0
         self._user_hidden = False
         self._had_window = False
+        self._branded = None
 
         self.server = SV.Server(self).start()
         self.win = BR.AppWindow(self.server.url,
@@ -379,7 +382,8 @@ class ScreenPin:
         exe, args = self.launch_command()
         err = SC.create(lnk, exe, arguments=args, working_dir=C.APP_DIR,
                         icon=self.icon_path or exe,
-                        description="ScreenPin — จัดแอพข้ามจอ")
+                        description="ScreenPin — จัดแอพข้ามจอ",
+                        app_id=APP_ID)
         if err:
             return False, err
         if not os.path.isfile(lnk):
@@ -438,6 +442,7 @@ class ScreenPin:
             self.engine.guard_until = 0.0
             time.sleep(0.15)
             self.place_self(force=True)
+            self.brand_ui_window()
             self.win.show()
             self.rebuild_state(force=True)
 
@@ -475,6 +480,18 @@ class ScreenPin:
         self._self_mon_key = mon.key
         self._placed_at = time.monotonic()
 
+    def brand_ui_window(self):
+        """Make the taskbar show ScreenPin instead of the host browser."""
+        if not self.win.alive() or self._branded == self.win.hwnd:
+            return
+        self._branded = self.win.hwnd
+        exe, args = self.launch_command()
+        cmd = ('"%s" %s' % (exe, args)).strip()
+        err = TB.brand_window(self.win.hwnd, self.icon_path or "",
+                              app_id=APP_ID, relaunch=cmd)
+        if err:
+            self.set_status("ตั้งไอคอน taskbar ไม่สำเร็จ: %s" % err, "warn")
+
     def sync_self_window(self):
         """Keep our own window identified even if startup discovery missed it.
 
@@ -484,7 +501,9 @@ class ScreenPin:
         if self.win.alive():
             self._had_window = True
             self.engine.ignore_hwnds = {self.win.hwnd}
-            if not self._user_hidden and not self.win.is_visible():
+            # Only rescue a window that got hidden outright. A minimised
+            # window is the user parking it - leave it alone.
+            if not self._user_hidden and self.win.is_hidden():
                 self.win.show(foreground=False)
             return True
         if self.win.find_window():
@@ -492,6 +511,7 @@ class ScreenPin:
             self.engine.ignore_hwnds = {self.win.hwnd}
             self.engine.guard_until = 0.0
             self.place_self(force=True)
+            self.brand_ui_window()
             return True
         self.engine.ignore_hwnds = set()
         if self._had_window and not self._user_hidden:

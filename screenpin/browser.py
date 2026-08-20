@@ -160,9 +160,22 @@ class AppWindow:
         return False
 
     def is_visible(self):
+        """On screen right now - minimised does not count."""
         return bool(self.alive()
                     and w.user32.IsWindowVisible(wintypes.HWND(self.hwnd))
                     and not w.user32.IsIconic(wintypes.HWND(self.hwnd)))
+
+    def is_minimized(self):
+        return bool(self.alive() and w.user32.IsIconic(wintypes.HWND(self.hwnd)))
+
+    def is_hidden(self):
+        """Actually hidden (ShowWindow SW_HIDE), as opposed to minimised.
+
+        Minimising is the user parking the window on the taskbar - we must not
+        undo that.
+        """
+        return bool(self.alive()
+                    and not w.user32.IsWindowVisible(wintypes.HWND(self.hwnd)))
 
     def rect(self):
         return w.get_window_rect(self.hwnd) if self.alive() else None
