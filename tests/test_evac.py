@@ -4,12 +4,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT); os.chdir(ROOT)
 TMP = os.path.join(ROOT, "tests", "_tmp")
 os.makedirs(TMP, exist_ok=True)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _pick import pick
+
 from screenpin import win32 as w, monitors as M, windows as W, config as C, engine as E
 w.set_dpi_aware()
 TCFG = os.path.join(TMP, "t5.json")
 if os.path.exists(TCFG): os.remove(TCFG)
 real = M.enumerate_monitors
-allm = real(); A, B, Cm = allm
+A, B, Cm, NMON = pick(real)
 pyw = sys.executable.replace("python.exe", "pythonw.exe")
 code = ("import tkinter;r=tkinter.Tk();r.title('SPEVAC');r.geometry('380x260+%d+%d');"
         "r.mainloop()" % (B.rect[0]+300, B.rect[1]+200))

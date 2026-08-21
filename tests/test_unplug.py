@@ -4,6 +4,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT); os.chdir(ROOT)
 TMP = os.path.join(ROOT, "tests", "_tmp")
 os.makedirs(TMP, exist_ok=True)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _pick import pick
+
 from screenpin import win32 as w, monitors as M, windows as W, config as C, engine as E
 w.set_dpi_aware()
 
@@ -11,9 +14,8 @@ CFG = os.path.join(TMP, "t2.json")
 if os.path.exists(CFG): os.remove(CFG)
 
 real_enum = M.enumerate_monitors
-mons_all = real_enum()
-HOME = mons_all[1]      # DISPLAY3 @ -1920,0
-OTHER = mons_all[2]     # DISPLAY1 @ 0,0
+_a, HOME, _c, NMON = pick(real_enum)
+OTHER = _c if _c.key != HOME.key else _a
 print("HOME =", HOME.key, HOME.rect)
 print("OTHER=", OTHER.key, OTHER.rect)
 

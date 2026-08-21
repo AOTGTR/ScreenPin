@@ -4,14 +4,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT); os.chdir(ROOT)
 TMP = os.path.join(ROOT, "tests", "_tmp")
 os.makedirs(TMP, exist_ok=True)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _pick import pick
+
 from screenpin import win32 as w, monitors as M, windows as W, config as C, engine as E
 w.set_dpi_aware()
 TCFG = os.path.join(TMP, "t4.json")
 if os.path.exists(TCFG): os.remove(TCFG)
 
 real = M.enumerate_monitors
-allm = real()
-A, B, Cm = allm[0], allm[1], allm[2]
+A, B, Cm, NMON = pick(real)
 pyw = sys.executable.replace("python.exe", "pythonw.exe")
 
 def spawn(title, mon):

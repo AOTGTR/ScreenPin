@@ -4,12 +4,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT); os.chdir(ROOT)
 TMP = os.path.join(ROOT, "tests", "_tmp")
 os.makedirs(TMP, exist_ok=True)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _pick import pick
+
 from screenpin import win32 as w, monitors as M, config as C, engine as E
 w.set_dpi_aware()
 T = os.path.join(TMP, "t6.json")
 if os.path.exists(T): os.remove(T)
 real = M.enumerate_monitors
-A, B, Cm = real()
+A, B, Cm, NMON = pick(real)
 cfg = C.Config(T); eng = E.Engine(cfg)
 eng.tick(); time.sleep(0.2); eng.tick()
 tA, tB, tC = cfg.tag_of(A.key), cfg.tag_of(B.key), cfg.tag_of(Cm.key)
