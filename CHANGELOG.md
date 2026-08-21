@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-08-21
+
 ### เพิ่ม
 - **รองรับจอที่วางแนวตั้ง / เป็นตาราง** — หน้าหลักวาดการ์ดจอเป็นแถวตามผังจริง
   จอซ้อนบน-ล่างหรือ 2×2 ก็แสดงถูกต้อง
@@ -58,7 +60,8 @@
 - tray icon, Start menu shortcut, เปิดพร้อม Windows
 - แพ็คเป็น `ScreenPin.exe` ไฟล์เดียว
 
-[Unreleased]: https://github.com/AOTGTR/ScreenPin/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/AOTGTR/ScreenPin/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/AOTGTR/ScreenPin/releases/tag/v1.0.3
 [1.0.2]: https://github.com/AOTGTR/ScreenPin/releases/tag/v1.0.2
 [1.0.1]: https://github.com/AOTGTR/ScreenPin/releases/tag/v1.0.1
 [1.0.0]: https://github.com/AOTGTR/ScreenPin/releases/tag/v1.0.0
