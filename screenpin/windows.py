@@ -83,6 +83,8 @@ def is_manageable(hwnd, cls=None):
         return False
     if w.is_cloaked(hwnd):
         return False
+    if w.user32.IsIconic(hw):
+        return True          # minimised windows park at (-32000,-32000, 160x28)
     r = w.get_window_rect(hwnd)
     if not r or r[2] < 80 or r[3] < 40:
         return False
@@ -95,6 +97,7 @@ def list_windows(mons=None, include_self=False):
         mons = M.enumerate_monitors()
     out = []
     alive = set()
+    offset = _workspace_offset(mons)
 
     def cb(hwnd, lparam):
         try:
@@ -107,12 +110,20 @@ def list_windows(mons=None, include_self=False):
                 return True
             wp = w.get_placement(hwnd)
             show = wp.showCmd if wp else w.SW_SHOWNORMAL
+            minimized = (show == w.SW_SHOWMINIMIZED)
+            if minimized and wp:
+                # A minimised window lives at (-32000,-32000); the rect it will
+                # come back to is the one that means anything.
+                rect = _restore_rect(wp, offset)
+                mon = M.monitor_of_rect(rect, mons)
+            else:
+                rect = w.get_window_rect(hwnd)
+                mon = M.monitor_of_window(hwnd, mons)
             out.append(WinInfo(
                 hwnd=hwnd, title=w.window_text(hwnd), exe=exe, path=path,
-                pid=pid, cls=cls, rect=w.get_window_rect(hwnd),
-                mon=M.monitor_of_window(hwnd, mons),
+                pid=pid, cls=cls, rect=rect, mon=mon,
                 maximized=(show == w.SW_SHOWMAXIMIZED),
-                minimized=(show == w.SW_SHOWMINIMIZED)))
+                minimized=minimized))
         except Exception:
             pass
         return True
@@ -170,12 +181,18 @@ def clamp_rect(rect, mon):
     return (int(x), int(y), int(cw), int(ch))
 
 
-def _workspace_offset():
+def _workspace_offset(mons=None):
     """GetWindowPlacement uses workspace coords: screen minus primary work origin."""
-    for m in M.enumerate_monitors():
+    for m in (mons if mons is not None else M.enumerate_monitors()):
         if m.primary:
             return m.work[0], m.work[1]
     return 0, 0
+
+
+def _restore_rect(wp, offset):
+    r = wp.rcNormalPosition
+    return (r.left + offset[0], r.top + offset[1],
+            r.right - r.left, r.bottom - r.top)
 
 
 # ------------------------------------------------------------------ move

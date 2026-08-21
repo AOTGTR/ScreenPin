@@ -203,6 +203,26 @@ def monitor_of_window(hwnd, mons):
     return None
 
 
+def monitor_of_rect(rect, mons):
+    """Monitor a rect sits on. Used for minimised windows, whose live rect is
+    parked far off-screen - their restore rect is the meaningful one."""
+    if not rect or not mons:
+        return None
+    cx = rect[0] + rect[2] // 2
+    cy = rect[1] + rect[3] // 2
+    for m in mons:
+        if m.contains(cx, cy):
+            return m
+    best, best_area = None, 0
+    for m in mons:
+        mx, my, mw, mh = m.rect
+        ox = max(0, min(rect[0] + rect[2], mx + mw) - max(rect[0], mx))
+        oy = max(0, min(rect[1] + rect[3], my + mh) - max(rect[1], my))
+        if ox * oy > best_area:
+            best, best_area = m, ox * oy
+    return best
+
+
 def monitor_at_cursor(mons):
     p = w.POINT()
     w.user32.GetCursorPos(ctypes.byref(p))

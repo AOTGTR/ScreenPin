@@ -157,8 +157,9 @@ function buildApp(win) {
                   (win.mode === "pin" ? " pinned" : away ? " away" : ""));
   node.draggable = true;
   node.dataset.hwnd = String(win.hwnd);
-  const note = win.mode === "pin" ? "\n📌 ปักหมุดไว้ที่ " + win.home
-    : away ? "\n⚠ จำไว้ว่าอยู่ " + win.home : "";
+  const note = (win.mode === "pin" ? "\n📌 ปักหมุดไว้ที่ " + win.home
+    : away ? "\n⚠ จำไว้ว่าอยู่ " + win.home : "")
+    + (win.min ? "\n▾ ย่ออยู่ — ลากย้ายได้ คลิกเพื่อเรียกขึ้นมา" : "");
   node.title = (win.exe || "") + "\n" + win.title + note;
 
   if (win.icon) {
@@ -173,6 +174,7 @@ function buildApp(win) {
   }
   if (win.mode === "pin") node.appendChild(el("span", "badge", "📌"));
   else if (away) node.appendChild(el("span", "badge", "⚠"));
+  else if (win.min) node.appendChild(el("span", "badge dim", "▾"));
   node.appendChild(el("div", "cap", shortName(win)));
 
   node.addEventListener("dragstart", (e) => {

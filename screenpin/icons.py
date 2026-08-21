@@ -115,7 +115,7 @@ def _dib_bits(hdc, hbm, width, height, bits):
     return (bytes(buf), stride) if ok else (None, 0)
 
 
-def hicon_to_png(hicon):
+def hicon_to_png(hicon, reject_blank=False):
     """32-bit RGBA PNG of an icon, alpha included. None if it cannot be read."""
     if not hicon:
         return None
@@ -136,32 +136,39 @@ def hicon_to_png(hicon):
         if color is None:
             return None
 
-        rgba = bytearray(width * height * 4)
-        opaque = False
-        for y in range(height):
-            row = y * stride
-            out = y * width * 4
-            for x in range(width):
-                i = row + x * 4
-                o = out + x * 4
-                rgba[o] = color[i + 2]        # BGRA -> RGBA
-                rgba[o + 1] = color[i + 1]
-                rgba[o + 2] = color[i]
-                a = color[i + 3]
-                rgba[o + 3] = a
-                if a:
-                    opaque = True
+        # Slice assignment does the BGRA->RGBA swap at C speed; a per-pixel
+        # Python loop here cost ~10 ms per icon.
+        rgba = bytearray(color[:width * height * 4])
+        rgba[0::4], rgba[2::4] = bytes(rgba[2::4]), bytes(rgba[0::4])
 
-        if not opaque and info.hbmMask:
+        alpha = bytes(rgba[3::4])
+        total = width * height
+        solid = total - alpha.count(0)
+
+        if solid and info.hbmMask and alpha.count(0) == total:
+            pass                                  # unreachable, kept simple
+        if solid == 0 and info.hbmMask:
             # Old-style icon: no alpha channel, transparency lives in the mask.
             mask, mstride = _dib_bits(hdc, info.hbmMask, width, height, 1)
-            for y in range(height):
-                for x in range(width):
-                    bit = 0
-                    if mask:
-                        byte = mask[y * mstride + (x >> 3)]
-                        bit = (byte >> (7 - (x & 7))) & 1
-                    rgba[(y * width + x) * 4 + 3] = 0 if bit else 255
+            if mask:
+                for y in range(height):
+                    base = y * mstride
+                    row = y * width
+                    for x in range(width):
+                        bit = (mask[base + (x >> 3)] >> (7 - (x & 7))) & 1
+                        rgba[(row + x) * 4 + 3] = 0 if bit else 255
+                alpha = bytes(rgba[3::4])
+                solid = total - alpha.count(0)
+
+        if reject_blank:
+            flat = all(max(ch) == min(ch)
+                       for ch in (bytes(rgba[0::4]), bytes(rgba[1::4]),
+                                  bytes(rgba[2::4]), alpha))
+            if solid == 0 or solid * 25 < total or flat:
+                # Chrome PWA windows hand out an icon that is empty or one flat
+                # colour - useless, so let the caller fall back to the exe icon.
+                return None
+
         return _png(width, height, bytes(rgba))
     except Exception:
         return None
@@ -233,7 +240,7 @@ def for_window(hwnd, exe_path=""):
         return _cache[hwnd]
     png = None
     try:
-        png = hicon_to_png(_window_icon(hwnd))
+        png = hicon_to_png(_window_icon(hwnd), reject_blank=True)
     except Exception:
         png = None
     if png is None:

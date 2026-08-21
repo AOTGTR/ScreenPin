@@ -104,8 +104,11 @@ h2.mt{margin-top:26px}
   pointer-events:none}
 .app .cap{font-size:9.5px;color:var(--dim2);max-width:54px;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;pointer-events:none}
-.app.min img,.app.min .fallback{opacity:.42}
-.app.min .cap{opacity:.5}
+.app.min img,.app.min .fallback{opacity:.4;filter:grayscale(1)}
+.app.min .cap{opacity:.45}
+.app.min{background:rgba(255,255,255,.02)}
+.app.min:hover img,.app.min:hover .fallback{opacity:.8;filter:grayscale(.3)}
+.app.min:hover .cap{opacity:.9}
 .app .badge{position:absolute;top:2px;right:4px;font-size:9px;pointer-events:none;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 .app.away{border-color:rgba(251,191,36,.4)}

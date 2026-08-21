@@ -106,7 +106,9 @@ class ScreenPin:
                 "home": sess.get("tag") or rec.get("tag") or "",
                 "mode": rec.get("mode", "remember"),
                 "max": win.maximized, "min": win.minimized,
-                "icon": bool(APPICONS.for_window(win.hwnd, win.path)),
+                # Icons are fetched lazily over /icon/<hwnd>.png; extracting
+                # them here would put ~5 ms per new window inside the tick.
+                "icon": True,
                 "displaced": win.hwnd in eng._displaced,
             })
         wins.sort(key=lambda d: (d["exe"], d["title"]))
