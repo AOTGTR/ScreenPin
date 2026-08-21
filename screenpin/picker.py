@@ -110,11 +110,34 @@ class Picker:
         if mon and target:
             self.out.put(("picker_pick", (target, mon["key"])))
 
-    def _pick_dir(self, direction):
+    def _pick_dir(self, direction, axis="x"):
+        """Arrow keys walk to the monitor that actually lies that way."""
         if not self.boxes:
             return
-        here = next((i for i, b in enumerate(self.boxes) if b[4].get("here")), 0)
-        self._pick(self.boxes[(here + direction) % len(self.boxes)][4])
+        mons = [b[4] for b in self.boxes]
+        here = next((m for m in mons if m.get("here")), mons[0])
+        hx = here["rect"][0] + here["rect"][2] // 2
+        hy = here["rect"][1] + here["rect"][3] // 2
+        horiz = axis != "y"
+        best, best_rank = None, None
+        for m in mons:
+            if m is here:
+                continue
+            mx = m["rect"][0] + m["rect"][2] // 2
+            my = m["rect"][1] + m["rect"][3] // 2
+            along = (mx - hx) if horiz else (my - hy)
+            if along * direction <= 0:
+                continue
+            rank = (abs((my - hy) if horiz else (mx - hx)), abs(along))
+            if best_rank is None or rank < best_rank:
+                best, best_rank = m, rank
+        if best is None:
+            spread = {m["rect"][0 if horiz else 1] for m in mons}
+            if len(spread) < 2:
+                return                      # no monitor lies that way at all
+            order = sorted(mons, key=lambda m: m["rect"][0 if horiz else 1])
+            best = order[0] if direction > 0 else order[-1]
+        self._pick(best)
 
     # ------------------------------------------------------------ painting
     def _paint(self):
@@ -219,6 +242,10 @@ class Picker:
                     self._pick_dir(-1)
                 elif vk == w.VK_RIGHT:
                     self._pick_dir(1)
+                elif vk == w.VK_UP:
+                    self._pick_dir(-1, "y")
+                elif vk == w.VK_DOWN:
+                    self._pick_dir(1, "y")
                 elif 0x31 <= vk <= 0x39 or 0x61 <= vk <= 0x69:
                     n = (vk - 0x30) if vk <= 0x39 else (vk - 0x60)
                     hit = next((b[4] for b in self.boxes

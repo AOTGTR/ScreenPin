@@ -7,6 +7,43 @@ even when you switch a monitor off and on. Windows 10/11, no dependencies.*
 
 ![ScreenPin](docs/main.png)
 
+<details>
+<summary><b>English</b> — what this is (click to expand)</summary>
+
+A Windows window manager for people who switch monitors off and on. When a
+monitor goes dark, Windows piles every window onto the remaining screens and
+forgets where they came from — ScreenPin puts them back.
+
+**How it works.** Windows renumbers displays (`1`, `2`, `3`) every time one is
+switched off, so ScreenPin never uses that number. It builds a stable id out of
+the panel itself — `<PnP id> | <EDID serial> | <connector UID>` — and you give
+that a name (`left`, `desk`, `TV`). Everything else refers to the name, so it
+survives replugging into a different port.
+
+**Using it.** The main screen draws your monitors as cards with the real icons
+of every window on them. Drag an icon to another card to move that window;
+click to switch to it; right-click to pin it to that monitor for good.
+Minimised windows show greyed out and can still be dragged. Global hotkeys
+(`Ctrl+Alt+←/→/↑/↓`, `Ctrl+Alt+1-6`) move the focused window without opening
+the app, and `Ctrl+Alt+Q` pops up a monitor picker you dismiss with one keypress.
+
+**Memory.** Each window's monitor is remembered per-window for the session and
+per-app in `config.json`, and positions are stored as fractions of the work area
+so they survive a change of resolution. Three guards stop the memory going bad:
+a window shoved elsewhere while its home monitor is dark is not relearned,
+neither is one you deliberately evacuated before switching a monitor off, and an
+explicit move through the app always wins.
+
+**Install.** Grab `ScreenPin.exe` from [Releases](../../releases) — one 8 MB
+file, no installer, no Python needed. It only needs Microsoft Edge (or Chrome),
+which it uses purely as a renderer for the interface; the app itself is Python
+talking to the Win32 API through `ctypes`, with no pip dependencies at all.
+Works with 1 to 8 monitors in any arrangement, side by side or stacked.
+
+MIT licensed — do what you like with it.
+
+</details>
+
 สำหรับคนใช้หลายจอที่ต้อง **ปิดจอบางตัวบ่อยๆ** — พอปิดจอ Windows จะยัดหน้าต่างมารวมกัน
 พอเปิดจอกลับมาก็ต้องมานั่งลากคืนเองทีละอัน ScreenPin จำให้แล้วคืนให้เอง
 
@@ -24,7 +61,7 @@ even when you switch a monitor off and on. Windows 10/11, no dependencies.*
 | 🚚 **อพยพทั้งจอ** | ก่อนปิดจอ กดปุ่มเดียวย้ายออกหมด แต่ยังจำจอเดิมไว้ |
 | 🖥 **ตัวแอพเองก็เด้งตามจอ** | ตั้งจอหลัก/จอรองได้ จอหลักกลับมาเมื่อไหร่เด้งกลับทันที |
 
-รองรับ **1–8 จอ** จอกี่ตัวก็ได้ ความละเอียดต่างกันได้:
+รองรับ **1–8 จอ** ความละเอียดต่างกันได้ วางเรียงแนวนอน ซ้อนแนวตั้ง หรือเป็นตารางก็ได้:
 
 | 2 จอ | 4 จอ |
 |---|---|
@@ -73,6 +110,7 @@ even when you switch a monitor off and on. Windows 10/11, no dependencies.*
 | ปุ่ม | ทำอะไร |
 |---|---|
 | `Ctrl+Alt+←` / `→` | ย้ายหน้าต่างที่ใช้อยู่ไปจอซ้าย/ขวา |
+| `Ctrl+Alt+↑` / `↓` | ย้ายไปจอบน/ล่าง (ถ้าวางจอซ้อนกัน) |
 | `Ctrl+Alt+1…4` | ส่งไปจอ slot นั้น |
 | `Ctrl+Alt+Q` | เปิดตัวเลือกจอ แล้วกดเลข |
 | `Ctrl+Alt+Shift+←/→` | อพยพทุกหน้าต่างบนจอนี้ |
@@ -204,4 +242,5 @@ screenpin/
 tests/               เทสพฤติกรรมจริง
 ```
 
-ดู [PLAN.md](PLAN.md) สำหรับเหตุผลการออกแบบและปัญหาที่เจอระหว่างทำ
+ดู [PLAN.md](PLAN.md) สำหรับเหตุผลการออกแบบและปัญหาที่เจอระหว่างทำ ·
+[CHANGELOG.md](CHANGELOG.md) สำหรับสิ่งที่เปลี่ยนในแต่ละเวอร์ชัน

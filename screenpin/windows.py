@@ -262,17 +262,40 @@ def move_to_monitor(hwnd, mon, mons=None, activate=True):
     return move_window(hwnd, mon, ratio=ratio, activate=activate)
 
 
-def neighbour_monitor(mon, mons, direction):
-    """Next monitor to the left/right (wraps around). direction: -1 or +1."""
-    if not mons:
+def neighbour_monitor(mon, mons, direction, axis="x"):
+    """Monitor next to `mon` in a direction, for any physical arrangement.
+
+    axis "x" is left/right, "y" is up/down; direction is -1 or +1. Picks the
+    nearest monitor that actually lies that way (so a 2x2 grid steps sideways
+    within its row), and wraps to the far end when there is nothing left.
+    """
+    if not mons or mon is None:
         return None
-    order = sorted(mons, key=lambda m: (m.rect[0], m.rect[1]))
-    keys = [m.key for m in order]
-    try:
-        i = keys.index(mon.key)
-    except ValueError:
-        i = 0
-    return order[(i + direction) % len(order)]
+    if len(mons) == 1:
+        return mons[0]
+    horiz = axis != "y"
+    cx, cy = mon.center()
+    best, best_rank = None, None
+    for m in mons:
+        if m.key == mon.key:
+            continue
+        mx, my = m.center()
+        along = (mx - cx) if horiz else (my - cy)
+        if along * direction <= 0:
+            continue                       # not in that direction
+        across = abs((my - cy) if horiz else (mx - cx))
+        rank = (across, abs(along))        # same row/column first, then nearest
+        if best_rank is None or rank < best_rank:
+            best, best_rank = m, rank
+    if best is not None:
+        return best
+    # Nothing that way. Wrap only if the monitors actually spread along this
+    # axis - otherwise "move up" on a single row should do nothing at all.
+    spread = {m.center()[0] if horiz else m.center()[1] for m in mons}
+    if len(spread) < 2:
+        return None
+    order = sorted(mons, key=lambda m: m.center()[0] if horiz else m.center()[1])
+    return order[0] if direction > 0 else order[-1]
 
 
 def evacuate(from_mon, to_mon, mons=None, wins=None):

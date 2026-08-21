@@ -54,8 +54,11 @@ h2.mt{margin-top:26px}
 .page::-webkit-scrollbar-thumb:hover{background:var(--line2);background-clip:content-box}
 
 /* ---------------------------------------------------------------- board */
-.board{display:flex;align-items:stretch;gap:14px;justify-content:center;
-  flex:1 1 auto;min-height:0;padding:4px 0 2px;overflow-x:auto;overflow-y:hidden}
+.board{display:flex;flex-direction:column;gap:12px;
+  flex:1 1 auto;min-height:0;padding:4px 0 2px;overflow:auto}
+.board-row{display:flex;align-items:stretch;gap:14px;justify-content:center;
+  flex:1 1 auto;min-height:0}
+.board.stacked .board-row{min-height:150px}
 .board::-webkit-scrollbar{height:8px}
 .board::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
 .mon{

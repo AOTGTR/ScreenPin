@@ -207,7 +207,8 @@ class ScreenPin:
         cur = M.monitor_of_window(hwnd, self.engine.mons) if hwnd else None
         if not cur:
             return False, "ไม่พบหน้าต่าง"
-        nxt = W.neighbour_monitor(cur, self.engine.mons, int(p.get("dir", 1)))
+        nxt = W.neighbour_monitor(cur, self.engine.mons, int(p.get("dir", 1)),
+                                  p.get("axis", "x"))
         return self.act_move({"hwnd": hwnd, "key": nxt.key})
 
     def act_pin(self, p):
@@ -590,6 +591,10 @@ class ScreenPin:
             eng.move_focus_dir(-1)
         elif action == "move_right":
             eng.move_focus_dir(1)
+        elif action == "move_up":
+            eng.move_focus_dir(-1, axis="y")
+        elif action == "move_down":
+            eng.move_focus_dir(1, axis="y")
         elif action.startswith("slot_"):
             eng.move_focus_slot(int(action.split("_")[1]))
         elif action == "evacuate_left":

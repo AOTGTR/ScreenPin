@@ -295,24 +295,25 @@ class Engine:
     def move_focus_to(self, mon, remember=True):
         return self.move_hwnd_to(W.foreground_window(), mon, remember)
 
-    def move_focus_dir(self, direction):
+    def move_focus_dir(self, direction, axis="x"):
         hwnd = W.foreground_window()
         if hwnd is None:
             return False
         cur = M.monitor_of_window(hwnd, self.mons)
         if cur is None:
             return False
-        return self.move_hwnd_to(hwnd, W.neighbour_monitor(cur, self.mons, direction))
+        return self.move_hwnd_to(
+            hwnd, W.neighbour_monitor(cur, self.mons, direction, axis))
 
     def move_focus_slot(self, slot):
         return self.move_focus_to(self.mon_for_slot(slot))
 
-    def evacuate_dir(self, direction, from_mon=None):
+    def evacuate_dir(self, direction, from_mon=None, axis="x"):
         """Clear a monitor before you switch it off - homes are kept, not relearned."""
         src = from_mon or M.monitor_at_cursor(self.mons)
         if src is None:
             return 0
-        dst = W.neighbour_monitor(src, self.mons, direction)
+        dst = W.neighbour_monitor(src, self.mons, direction, axis)
         if dst is None or dst.key == src.key:
             return 0
         wins = [x for x in self.wins if x.hwnd not in self.ignore_hwnds]

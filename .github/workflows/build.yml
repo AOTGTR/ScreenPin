@@ -1,0 +1,71 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Syntax check every module
+        run: |
+          python -c "import compileall, sys; sys.exit(0 if compileall.compile_dir('screenpin', quiet=1) and compileall.compile_file('main.py', quiet=1) else 1)"
+
+      - name: Import check
+        run: python -c "import screenpin.app, screenpin.engine, screenpin.icons, screenpin.taskbar; print('imports ok')"
+
+      - name: Install PyInstaller
+        run: pip install --disable-pip-version-check pyinstaller
+
+      - name: Build ScreenPin.exe
+        run: >
+          pyinstaller --noconfirm --clean --onefile --windowed
+          --name ScreenPin
+          --icon screenpin.ico
+          --version-file version_info.txt
+          --add-data "screenpin/web;screenpin/web"
+          --exclude-module tkinter
+          --exclude-module unittest
+          --exclude-module pydoc
+          --exclude-module pdb
+          --exclude-module doctest
+          main.py
+
+      - name: Check the exe actually starts
+        run: |
+          $p = Start-Process -FilePath dist\ScreenPin.exe -ArgumentList '--tray' -PassThru
+          Start-Sleep -Seconds 12
+          if (Test-Path screenpin.log) {
+            Write-Host "startup log:"; Get-Content screenpin.log
+            Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+            exit 1
+          }
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          Write-Host "started with no error log"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScreenPin-exe
+          path: dist/ScreenPin.exe
+          if-no-files-found: error
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: gh release upload ${{ github.ref_name }} dist/ScreenPin.exe --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

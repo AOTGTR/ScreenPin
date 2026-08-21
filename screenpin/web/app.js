@@ -82,9 +82,23 @@ function shortName(win) {
 
 function boardSig() {
   return JSON.stringify([
-    S.monitors.map((m) => [m.key, m.tag, m.slot, m.w, m.here]),
+    S.monitors.map((m) => [m.key, m.tag, m.slot, m.x, m.y, m.w, m.h, m.here]),
     S.windows.map((x) => [x.hwnd, x.mon, x.mode, x.min, x.home, x.exe]),
   ]);
+}
+
+function monitorRows(mons) {
+  // Group monitors that sit side by side into rows, so a stacked or L-shaped
+  // arrangement is drawn the way it physically looks.
+  const rows = [];
+  for (const m of [...mons].sort((a, b) => a.y - b.y || a.x - b.x)) {
+    const row = rows.find((r) => r.some((o) =>
+      Math.min(o.y + o.h, m.y + m.h) - Math.max(o.y, m.y)
+        > Math.min(o.h, m.h) * 0.5));
+    if (row) row.push(m); else rows.push([m]);
+  }
+  rows.forEach((r) => r.sort((a, b) => a.x - b.x));
+  return rows;
 }
 
 function renderBoard(force) {
@@ -95,8 +109,15 @@ function renderBoard(force) {
   board.innerHTML = "";
   if (!S.monitors.length) return;
 
-  const total = S.monitors.reduce((a, m) => a + m.w, 0) || 1;
+  const rows = monitorRows(S.monitors);
+  board.classList.toggle("stacked", rows.length > 1);
+  const rowEls = rows.map(() => el("div", "board-row"));
+  rowEls.forEach((r) => board.appendChild(r));
+
   for (const m of S.monitors) {
+    const ri = rows.findIndex((r) => r.includes(m));
+    const row = rows[ri];
+    const total = row.reduce((a, o) => a + o.w, 0) || 1;
     const card = el("div", "mon" + (m.here ? " self" : ""));
     card.style.flex = (m.w / total) + " 1 0";
 
@@ -147,7 +168,7 @@ function renderBoard(force) {
       dragHwnd = null;
       if (hwnd) api("move", { hwnd, key: m.key });
     });
-    board.appendChild(card);
+    rowEls[ri].appendChild(card);
   }
 }
 
@@ -396,6 +417,8 @@ function renderOpts() {
 const HK_NAMES = {
   move_left: "ย้ายหน้าต่าง → จอซ้าย",
   move_right: "ย้ายหน้าต่าง → จอขวา",
+  move_up: "ย้ายหน้าต่าง → จอบน",
+  move_down: "ย้ายหน้าต่าง → จอล่าง",
   picker: "เปิดตัวเลือกจอ (overlay)",
   pin_here: "ปักหมุดหน้าต่างนี้ไว้จอนี้",
   slot_1: "ส่งไปจอ slot 1", slot_2: "ส่งไปจอ slot 2",

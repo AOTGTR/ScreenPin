@@ -14,6 +14,8 @@ CONFIG_PATH = os.path.join(APP_DIR, "config.json")
 DEFAULT_HOTKEYS = {
     "move_left":     "Ctrl+Alt+Left",
     "move_right":    "Ctrl+Alt+Right",
+    "move_up":       "Ctrl+Alt+Up",
+    "move_down":     "Ctrl+Alt+Down",
     "slot_1":        "Ctrl+Alt+1",
     "slot_2":        "Ctrl+Alt+2",
     "slot_3":        "Ctrl+Alt+3",
